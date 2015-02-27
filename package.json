@@ -1,0 +1,24 @@
+{
+  "name": "parse-3ds",
+  "version": "1.0.0",
+  "description": "A 3DS file parser",
+  "author": "thibauts",
+  "license": "MIT",
+  "main": "index.js",
+ "dependencies": {
+    "object-assign": "^2.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thibauts/node-parse-3ds.git"
+  },
+  "keywords": [
+    "3ds",
+    "parser",
+    "mesh",
+    "scene"
+  ]
+}
