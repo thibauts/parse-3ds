@@ -148,7 +148,6 @@ function parseChunk(buf, offset) {
     chunk = objectAssign({}, chunk, parsed);
   } else if(NON_LEAF_CHUNKS.indexOf(chunk.id) !== -1) {
     chunk.children = parseChildren(data);
-    delete chunk['data'];
   }
 
   return chunk;
