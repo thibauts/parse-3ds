@@ -1,7 +1,7 @@
 {
   "name": "parse-3ds",
   "version": "1.1.1",
-  "description": "A 3DS file parser",
+  "description": "Parses 3D Studio .3DS files",
   "author": "thibauts",
   "license": "MIT",
   "main": "index.js",
