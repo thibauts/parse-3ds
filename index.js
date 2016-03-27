@@ -59,7 +59,7 @@ var CHUNK_NAMES = {
 
 
 function parseFaceListChunk(buf) {
-  var faceCount = buf.readUInt16LE();
+  var faceCount = buf.readUInt16LE(0);
 
   // The face array contains 3 vertex indices + a 2 bytes 
   // bit-field containing various flags (see [1]).
@@ -83,7 +83,7 @@ function parseFaceListChunk(buf) {
 
 
 function parseVertexListChunk(buf) {
-  var vertexCount = buf.readUInt16LE();
+  var vertexCount = buf.readUInt16LE(0);
   var vertices = buf.slice(2);
 
   // The vertice coordinates are returned as a Float32LE buffer 
