@@ -148,6 +148,9 @@ function parseChunk(buf, offset) {
     chunk = objectAssign({}, chunk, parsed);
   } else if(NON_LEAF_CHUNKS.indexOf(chunk.id) !== -1) {
     chunk.children = parseChildren(data);
+  } else {
+    // Keep raw data if unparsed node has no children
+    chunk.data = data;
   }
 
   return chunk;
