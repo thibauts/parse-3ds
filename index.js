@@ -222,6 +222,7 @@ module.exports = function(buf) {
   });
 
   return {
-    objects: objects
+    objects: objects,
+    tree: rootChunk
   };
 };
