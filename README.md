@@ -27,6 +27,10 @@ var parsed = parse3DS(buf);
     { name: 'a', vertices: [ ... ], faces: [ ... ] },
     { name: 'b', vertices: [ ... ], faces: [ ... ] },
     { name: 'c', vertices: [ ... ], faces: [ ... ] }
+  ],
+  tree: [
+    // Unparsed nodes will have an extra 'data' field
+    { id: 42, length: 42, name: 'abc', children: [ ... ] }
   ]
 }
 */
