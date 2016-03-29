@@ -206,26 +206,37 @@ function unpackFaces(buf) {
 }
 
 
-module.exports = function(buf) {
+module.exports = function(buf, opts) {
+  
+  // Default is: return objects, do not return chuncks tree
+  opts = opts || {}
+  var returnObjects = opts.objects == undefined ? true : opts.objects
+  var returnTree = opts.tree == undefined ? false : opts.tree
+
+  var result = {}
+
   var rootChunk = parseChunk(buf, 0);
 
-  var editorChunk = getChildChunk(rootChunk, 0x3D3D);
-  var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+  if (returnObjects) {
+    var editorChunk = getChildChunk(rootChunk, 0x3D3D);
+    var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+  
+    result.objects = objectChunks.map(function(objectChunk) {
+      var triMeshChunk = getChildChunk(objectChunk, 0x4100);
+      var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
+      var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
+  
+      return {
+        name: objectChunk.objectName,
+        vertices: unpackVertices(vertexListChunk.vertices),
+        faces: unpackFaces(faceListChunk.faces)
+      };
+    });
+  }
 
-  var objects = objectChunks.map(function(objectChunk) {
-    var triMeshChunk = getChildChunk(objectChunk, 0x4100);
-    var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
-    var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
+  if (returnTree) {
+    result.tree = rootChunk;
+  }
 
-    return {
-      name: objectChunk.objectName,
-      vertices: unpackVertices(vertexListChunk.vertices),
-      faces: unpackFaces(faceListChunk.faces)
-    };
-  });
-
-  return {
-    objects: objects,
-    tree: rootChunk
-  };
+  return result;
 };
