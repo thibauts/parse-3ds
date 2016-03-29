@@ -59,7 +59,7 @@ var CHUNK_NAMES = {
 
 
 function parseFaceListChunk(buf) {
-  var faceCount = buf.readUInt16LE();
+  var faceCount = buf.readUInt16LE(0);
 
   // The face array contains 3 vertex indices + a 2 bytes 
   // bit-field containing various flags (see [1]).
@@ -83,7 +83,7 @@ function parseFaceListChunk(buf) {
 
 
 function parseVertexListChunk(buf) {
-  var vertexCount = buf.readUInt16LE();
+  var vertexCount = buf.readUInt16LE(0);
   var vertices = buf.slice(2);
 
   // The vertice coordinates are returned as a Float32LE buffer 
@@ -148,6 +148,9 @@ function parseChunk(buf, offset) {
     chunk = objectAssign({}, chunk, parsed);
   } else if(NON_LEAF_CHUNKS.indexOf(chunk.id) !== -1) {
     chunk.children = parseChildren(data);
+  } else {
+    // Keep raw data if unparsed node has no children
+    chunk.data = data;
   }
 
   return chunk;
@@ -203,25 +206,37 @@ function unpackFaces(buf) {
 }
 
 
-module.exports = function(buf) {
+module.exports = function(buf, opts) {
+  
+  // Default is: return objects, do not return chuncks tree
+  opts = opts || {}
+  var returnObjects = opts.objects == undefined ? true : opts.objects
+  var returnTree = opts.tree == undefined ? false : opts.tree
+
+  var result = {}
+
   var rootChunk = parseChunk(buf, 0);
 
-  var editorChunk = getChildChunk(rootChunk, 0x3D3D);
-  var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+  if (returnObjects) {
+    var editorChunk = getChildChunk(rootChunk, 0x3D3D);
+    var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+  
+    result.objects = objectChunks.map(function(objectChunk) {
+      var triMeshChunk = getChildChunk(objectChunk, 0x4100);
+      var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
+      var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
+  
+      return {
+        name: objectChunk.objectName,
+        vertices: unpackVertices(vertexListChunk.vertices),
+        faces: unpackFaces(faceListChunk.faces)
+      };
+    });
+  }
 
-  var objects = objectChunks.map(function(objectChunk) {
-    var triMeshChunk = getChildChunk(objectChunk, 0x4100);
-    var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
-    var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
+  if (returnTree) {
+    result.tree = rootChunk;
+  }
 
-    return {
-      name: objectChunk.objectName,
-      vertices: unpackVertices(vertexListChunk.vertices),
-      faces: unpackFaces(faceListChunk.faces)
-    };
-  });
-
-  return {
-    objects: objects
-  };
+  return result;
 };

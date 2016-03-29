@@ -14,12 +14,21 @@ $ npm install parse-3ds
 Usage
 -----
 
+### parsed = require('parse-3ds')((buf[, options])) ###
+
+Returns the parsed contents of `buf`. `options`, if present, can contain the following keys:
+* `objects`: if `true`, object data will be available. Default is `true`.
+* `tree`: if `true`, the full chunks tree will be available. Default is `false`.
+
+Example
+-------
+
 ```javascript
 var parse3DS = require('parse-3ds');
 var fs = require('fs');
 
 var buf = fs.readFileSync('test.3ds');
-var parsed = parse3DS(buf);
+var parsed = parse3DS(buf, { 'objects':true, 'tree':true });
 
 /*
 { 
@@ -27,6 +36,10 @@ var parsed = parse3DS(buf);
     { name: 'a', vertices: [ ... ], faces: [ ... ] },
     { name: 'b', vertices: [ ... ], faces: [ ... ] },
     { name: 'c', vertices: [ ... ], faces: [ ... ] }
+  ],
+  tree: [
+    // Unparsed nodes will have an extra 'data' field
+    { id: 42, length: 42, name: 'abc', children: [ ... ] }
   ]
 }
 */
