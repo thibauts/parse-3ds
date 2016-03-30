@@ -17,7 +17,8 @@ var NON_LEAF_CHUNKS = [
 var CHUNK_PARSERS = {
   0x4000: parseObjectChunk,
   0x4110: parseVertexListChunk,
-  0x4120: parseFaceListChunk
+  0x4120: parseFaceListChunk,
+  0xA000: parseMaterialNameChunk
 };
 
 var CHUNK_NAMES = {
@@ -70,6 +71,19 @@ var CHUNK_NAMES = {
   0xB022: 'Scale Track',
   0xB030: 'Hierarchy Position'
 };
+
+
+function parseMaterialNameChunk(buf) {
+  return {
+    materialName: fromAsciiz(buf)
+  };
+}
+
+
+function fromAsciiz(buf) {
+  // TODO What would be the proper encoding?
+  return buf.toString('ascii');
+}
 
 
 function parseFaceListChunk(buf) {
