@@ -14,11 +14,14 @@ $ npm install parse-3ds
 Usage
 -----
 
-### parsed = require('parse-3ds')((buf[, options])) ###
+### parsed = require('parse-3ds')(buf[, options]) ###
 
 Returns the parsed contents of `buf`. `options`, if present, can contain the following keys:
 * `objects`: if `true`, object data will be available. Default is `true`.
 * `tree`: if `true`, the full chunks tree will be available. Default is `false`.
+* `encoding`: the encoding used to interpret strings stored in parsed file. Defaults to `binary` (latin-1).
+
+Note: should you need to explicitly set `encoding`, please consider logging an issue for further investigation.
 
 Example
 -------

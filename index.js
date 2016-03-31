@@ -4,6 +4,8 @@
  */
 var objectAssign = require('object-assign');
 
+var encoding;
+
 // Those are parseable as a straight list of subchunks. 
 var NON_LEAF_CHUNKS = [
   0x4D4D, // Main Chunk
@@ -81,14 +83,8 @@ var CHUNK_NAMES = {
 
 function parseMaterialNameChunk(buf) {
   return {
-    materialName: fromAsciiz(buf)
+    materialName: fromASCIIZ(buf)
   };
-}
-
-
-function fromAsciiz(buf) {
-  // TODO What would be the proper encoding?
-  return buf.toString('ascii');
 }
 
 
@@ -128,16 +124,31 @@ function parseVertexListChunk(buf) {
 }
 
 
-function parseObjectChunk(buf) {
-  // The object chunk starts with the object name
-  // as a zero terminated ASCII string
+/** Read a zero-terminated string in 'encoding' format from 'buf'.
+ * @param buf The input buffer containing the bytes to decode.
+ * @param obj if provided, the number of bytes read (including the final 0) will be returned as obj.count.
+ * @returns the parsed string.
+ */
+function fromASCIIZ(buf, obj) {
   var i = 0;
   while(buf[i] != 0) {
     i++;
   }
 
-  var objectName = buf.slice(0, i).toString();
-  var data = buf.slice(i + 1);
+  if (obj) {
+    obj.count = i;
+  }
+
+  return buf.slice(0, i).toString(encoding);
+}
+
+
+function parseObjectChunk(buf) {
+  // The object chunk starts with the object name
+  // as a zero terminated ASCII string
+  var  obj= {}
+  var objectName = fromASCIIZ(buf, obj);
+  var data = buf.slice(obj.count + 1);
 
   return {
     objectName: objectName,
@@ -244,8 +255,9 @@ module.exports = function(buf, opts) {
   
   // Default is: return objects, do not return chuncks tree
   opts = opts || {}
-  var returnObjects = opts.objects == undefined ? true : opts.objects
-  var returnTree = opts.tree == undefined ? false : opts.tree
+  var returnObjects = opts.objects == undefined ? true : opts.objects;
+  var returnTree = opts.tree == undefined ? false : opts.tree;
+  encoding = opts.encoding == undefined ? 'binary' : opts.encoding;
 
   var result = {}
 
