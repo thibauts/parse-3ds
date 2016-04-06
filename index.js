@@ -4,6 +4,8 @@
  */
 var objectAssign = require('object-assign');
 
+var encoding;
+
 // Those are parseable as a straight list of subchunks. 
 var NON_LEAF_CHUNKS = [
   0x4D4D, // Main Chunk
@@ -17,13 +19,16 @@ var NON_LEAF_CHUNKS = [
 var CHUNK_PARSERS = {
   0x4000: parseObjectChunk,
   0x4110: parseVertexListChunk,
-  0x4120: parseFaceListChunk
+  0x4120: parseFaceListChunk,
+  0xA000: parseMaterialNameChunk
 };
 
 var CHUNK_NAMES = {
   0x4D4D: 'Main Chunk',
   0x0002: 'Version',
+  0x0100: 'Scale Factor',
   0x3D3D: '3D Editor Chunk',
+  0x3D3E: 'Editor Configuration',
   0x4000: 'Object Block',
   0x4100: 'Triangular Mesh',
   0x4110: 'Vertex List',
@@ -32,6 +37,7 @@ var CHUNK_NAMES = {
   0x4150: 'Smoothing Group List',
   0x4140: 'Mapping Coordinates List',
   0x4160: 'Local Coordinates System',
+  0x4165: 'Visibility',
   0x4600: 'Light',
   0x4610: 'Spotlight',
   0x4700: 'Camera',
@@ -40,15 +46,32 @@ var CHUNK_NAMES = {
   0xA010: 'Ambient Color',
   0xA020: 'Diffuse Color',
   0xA030: 'Specular Color',
+  0xA040: 'Shininess',
+  0xA041: 'Shininess Strength',
+  0xA050: 'Transparency',
+  0xA052: 'Transparency Falloff',
+  0xA053: 'Reflect Blur',
+  0xA081: 'Two Sided', 
+  0xA084: 'Self Illumination',
+  0xA087: 'Wire Thickness',
+  0xA08A: 'Transparency Falloff IN',
+  0xA100: 'Material Type',
   0xA200: 'Texture Map 1',
+  0xA210: 'Opacity',
   0xA230: 'Bump Map',
   0xA220: 'Reflection Map',
   0xA300: 'Mapping Filename',
   0xA351: 'Mapping Parameters',
   0xB000: 'Keyframer Chunk',
   0xB002: 'Mesh Information Block',
+  0xB003: 'Camera Information Block',
+  0xB004: 'Target Node Block',
+  0xB005: 'Light Node Block',
+  0xB006: 'Light Target Information Block',
   0xB007: 'Spot Light Information Block',
   0xB008: 'Frames (Start and End)',
+  0xB009: 'Keyframe Current Time',
+  0xB00A: 'Keyframes Header',
   0xB010: 'Object Name',
   0xB013: 'Object Pivot Point',
   0xB020: 'Position Track',
@@ -56,6 +79,13 @@ var CHUNK_NAMES = {
   0xB022: 'Scale Track',
   0xB030: 'Hierarchy Position'
 };
+
+
+function parseMaterialNameChunk(buf) {
+  return {
+    materialName: fromASCIIZ(buf)
+  };
+}
 
 
 function parseFaceListChunk(buf) {
@@ -94,16 +124,31 @@ function parseVertexListChunk(buf) {
 }
 
 
-function parseObjectChunk(buf) {
-  // The object chunk starts with the object name
-  // as a zero terminated ASCII string
+/** Read a zero-terminated string in 'encoding' format from 'buf'.
+ * @param buf The input buffer containing the bytes to decode.
+ * @param obj if provided, the number of bytes read (including the final 0) will be returned as obj.count.
+ * @returns the parsed string.
+ */
+function fromASCIIZ(buf, obj) {
   var i = 0;
   while(buf[i] != 0) {
     i++;
   }
 
-  var objectName = buf.slice(0, i).toString();
-  var data = buf.slice(i + 1);
+  if (obj) {
+    obj.count = i;
+  }
+
+  return buf.slice(0, i).toString(encoding);
+}
+
+
+function parseObjectChunk(buf) {
+  // The object chunk starts with the object name
+  // as a zero terminated ASCII string
+  var  obj= {}
+  var objectName = fromASCIIZ(buf, obj);
+  var data = buf.slice(obj.count + 1);
 
   return {
     objectName: objectName,
@@ -210,8 +255,9 @@ module.exports = function(buf, opts) {
   
   // Default is: return objects, do not return chuncks tree
   opts = opts || {}
-  var returnObjects = opts.objects == undefined ? true : opts.objects
-  var returnTree = opts.tree == undefined ? false : opts.tree
+  var returnObjects = opts.objects == undefined ? true : opts.objects;
+  var returnTree = opts.tree == undefined ? false : opts.tree;
+  encoding = opts.encoding == undefined ? 'binary' : opts.encoding;
 
   var result = {}
 
