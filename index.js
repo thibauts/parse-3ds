@@ -262,13 +262,16 @@ module.exports = function(buf, opts) {
   var result = {}
 
   var rootChunk = parseChunk(buf, 0);
-
+  console.log("root chunk is "+rootChunk);
+  console.log(rootChunk);
   if (returnObjects) {
     var editorChunk = getChildChunk(rootChunk, 0x3D3D);
+    console.log("editor chunk:");console.log(editorChunk);
     var objectChunks = getChildrenChunks(editorChunk, 0x4000);
   
     result.objects = objectChunks.map(function(objectChunk) {
       var triMeshChunk = getChildChunk(objectChunk, 0x4100);
+      console.log(typeof triMeshChunk); console.log(' '); console.log(triMeshChunk);
       var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
       var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
   
