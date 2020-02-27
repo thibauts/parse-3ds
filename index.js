@@ -204,13 +204,22 @@ function parseChunk(buf, offset) {
 
 function getChildChunk(tree, id) {
   var chunks = getChildrenChunks(tree, id);
-  return chunks.length > 0 
-    ? chunks[0]
-    : null;
+  
+  if (chunks.length === 1) {
+    res= chunks[0];
+  }else if (chunks.length > 1) {
+   console.log("ERROR: More than one "+CHUNK_NAMES[chunks.id]+" in object.");
+   var res = null;
+  }else{
+   //console.log("ERROR: Did not find ID "+id+" in "+tree.objectName)
+  }
+
+  return res;
 }
 
 
 function getChildrenChunks(tree, id) {
+ 
   return tree.children.filter(function(chunk) {
     return chunk.id === id;
   });
@@ -252,40 +261,48 @@ function unpackFaces(buf) {
 
 
 module.exports = function(buf, opts) {
-  
-  // Default is: return objects, do not return chuncks tree
-  opts = opts || {}
-  var returnObjects = opts.objects == undefined ? true : opts.objects;
-  var returnTree = opts.tree == undefined ? false : opts.tree;
-  encoding = opts.encoding == undefined ? 'binary' : opts.encoding;
+   
+   // Default is: return objects, do not return chuncks tree
+   opts = opts || {}
+   var returnObjects = opts.objects == undefined ? true : opts.objects;
+   var returnTree = opts.tree == undefined ? false : opts.tree;
+   encoding = opts.encoding == undefined ? 'binary' : opts.encoding;
 
-  var result = {}
+   var result = {}
 
-  var rootChunk = parseChunk(buf, 0);
-  console.log("root chunk is "+rootChunk);
-  console.log(rootChunk);
-  if (returnObjects) {
-    var editorChunk = getChildChunk(rootChunk, 0x3D3D);
-    console.log("editor chunk:");console.log(editorChunk);
-    var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+ var rootChunk = parseChunk(buf, 0);
+ if (returnObjects) {
+  var editorChunk = getChildChunk(rootChunk, 0x3D3D)
+  var objectChunks = getChildrenChunks(editorChunk, 0x4000);
+  var meshedObjectChunks = objectChunks;
   
-    result.objects = objectChunks.map(function(objectChunk) {
-      var triMeshChunk = getChildChunk(objectChunk, 0x4100);
-      console.log(typeof triMeshChunk); console.log(' '); console.log(triMeshChunk);
-      var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
-      var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
   
-      return {
-        name: objectChunk.objectName,
-        vertices: unpackVertices(vertexListChunk.vertices),
-        faces: unpackFaces(faceListChunk.faces)
-      };
-    });
+  for (var i=0; i < objectChunks.length; i++) {
+   if (!(objectChunks[i]["children"][0].name === "Triangular Mesh")) {
+     meshedObjectChunks.splice(i,1);
+   }
   }
+   result.objects = meshedObjectChunks.map(function(meshedChunk) {
+     var triMeshChunk = getChildChunk(meshedChunk, 0x4100);
+     var vertexListChunk = getChildChunk(triMeshChunk, 0x4110);
+     var faceListChunk = getChildChunk(triMeshChunk, 0x4120);
 
-  if (returnTree) {
-    result.tree = rootChunk;
-  }
+     return {
+      
+         name: meshedChunk.objectName,
+         noVertices: vertexListChunk===undefined ? 0 : unpackVertices(vertexListChunk.vertices).length,
+         vertices: vertexListChunk===undefined ? null : unpackVertices(vertexListChunk.vertices),
+         noFaces: faceListChunk===undefined ? 0 : unpackFaces(faceListChunk.faces).length,
+         faces: faceListChunk===undefined ? null : unpackFaces(faceListChunk.faces)
 
-  return result;
+     };
+   });
+ }
+
+ if (returnTree) {
+   result.tree = rootChunk;
+ }
+
+ return result;
 };
+
