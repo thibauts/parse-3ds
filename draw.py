@@ -2,6 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
+def importNodes(file, objects=="all"):
+    with open(file, "r") as a_file:
+      3DObjects = {}
+      for line in a_file:
+        if has_special_char(line):
+            print(line+" is special.")
+            i=
+def has_special_char(text: str) -> bool:
+    return any(c for c in text if not c.isalnum() and not c.isspace())
+
+if __name__ == "__main__":
+    importNodes("./vertices.txt")
+    
+'''
 pts = np.array([[2,2], [6,5], [3,6]])
 p = Polygon([[2,2],[6,5],[3,6]], closed=False)
 ax = plt.gca()
@@ -10,7 +24,10 @@ ax.set_xlim(1,7)
 ax.set_ylim(1,8)
 plt.show()
 
+
 '''
+'''
+
 Theory:
 
 Name the nodes and assign locations (per object dictionary?)
