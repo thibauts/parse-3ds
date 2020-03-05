@@ -1,20 +1,41 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+#import sys 
 
-def importNodes(file, objects=="all"):
+def importNodes(file, objects="all"):
+    parsed = []
     with open(file, "r") as a_file:
-      3DObjects = {}
-      for line in a_file:
-        if has_special_char(line):
-            print(line+" is special.")
-            i=
-def has_special_char(text: str) -> bool:
-    return any(c for c in text if not c.isalnum() and not c.isspace())
-
+        for line in a_file:
+            parsed.append(line)
+        for i in range(0, len(parsed)):
+            parsed[i] = parsed[i].rstrip()
+    
+    nodes = {}
+    for i in range(0, len(parsed)):
+        if parsed[i][0] != " ":
+            print("Found element "+parsed[i])
+            coords = []
+            for k in parsed[i+1:]:
+                print("..."+k)
+                if k[0] == " ":
+                    print("This is a node ^.")
+                    k = k.lstrip()
+                    k = k.split(",")
+                    for no in range(0,len(k)):
+                        k[no] = float(k[no])
+                    coords.append(k)
+                else:
+                    break
+            nodes[parsed[i]] = coords[:]
+            print("Finished analysing element "+parsed[i])
+    print(nodes[0])
+    
+    
+    
 if __name__ == "__main__":
     importNodes("./vertices.txt")
-    
+
 '''
 pts = np.array([[2,2], [6,5], [3,6]])
 p = Polygon([[2,2],[6,5],[3,6]], closed=False)
