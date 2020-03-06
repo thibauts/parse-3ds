@@ -1,69 +1,68 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
-#import sys 
+import json
 
-def importNodes(file, objects="all"):
-    parsed = []
-    with open(file, "r") as a_file:
-        for line in a_file:
-            parsed.append(line)
-        for i in range(0, len(parsed)):
-            parsed[i] = parsed[i].rstrip()
-    
-    nodes = {}
-    for i in range(0, len(parsed)):
-        if parsed[i][0] != " ":
-            print("Found element "+parsed[i])
-            coords = []
-            for k in parsed[i+1:]:
-                print("..."+k)
-                if k[0] == " ":
-                    print("This is a node ^.")
-                    k = k.lstrip()
-                    k = k.split(",")
-                    for no in range(0,len(k)):
-                        k[no] = float(k[no])
-                    coords.append(k)
-                else:
-                    break
-            nodes[parsed[i]] = coords[:]
-            print("Finished analysing element "+parsed[i])
-    print(nodes[0])
-    
-    
-    
+def matchNodesFaces(nodes,faces):
+    triangles = []
+    for i in range(0, len(faces)):
+        for k in range(0, len(faces[i])):
+            faces[i][k] = nodes[faces[i][k]]
+    triangles = faces
+    return triangles
+
+def getTriangles(model, target="all"):
+    if target == "all":
+        triangles = {}
+        for i in range(0, len(model)):
+            triangles[model[i]["name"]] = matchNodesFaces(nodes, faces)
+        return triangles
+    else:
+        triangles = []
+        for i in range(0, len(model)):
+            if model[i]["name"] == target:
+                nodes = model[i]["vertices"]
+                faces = model[i]["faces"]
+                triangles = matchNodesFaces(nodes, faces)
+        return triangles
+        
+def make2D(triangles):
+    newTrigs = []
+    for i in range(0, len(triangles)):
+        trig2D = []
+
+        for k in [0,1,2]:
+            newVertex = [triangles[i][k][0],triangles[i][k][2]]
+            trig2D.append(newVertex)
+        newTrigs.append(trig2D)
+
+    return newTrigs
+           
 if __name__ == "__main__":
-    importNodes("./vertices.txt")
+    highlightedges = False
+    
+    model = json.load(open("./everything.json","r"))
 
-'''
-pts = np.array([[2,2], [6,5], [3,6]])
-p = Polygon([[2,2],[6,5],[3,6]], closed=False)
-ax = plt.gca()
-ax.add_patch(p)
-ax.set_xlim(1,7)
-ax.set_ylim(1,8)
-plt.show()
+    # DEMO MODE
+    for k in range(1, len(model)):
+        if model[k]["noFaces"] != 0:
+            print("Drawing "+model[k]["name"])
+            triangles = getTriangles(model,model[k]["name"])
+            triangles = make2D(triangles)
+            for i in triangles:
+                pts = i
+                if highlightedges == True:
+                    highlighter="b"
+                else:
+                    highlighter="k"
+                 
+                p = Polygon(pts, closed=False,facecolor="k", edgecolor=highlighter)
+                ax = plt.gca()
+                ax.add_patch(p)
+        else:
+            print("Skipping "+model[k]["name"]+" because it's got no faces.")
+            
+    ax.set_xlim(-2000,11000)
+    ax.set_ylim(-2000,11000)
+    plt.show()
 
-
-'''
-'''
-
-Theory:
-
-Name the nodes and assign locations (per object dictionary?)
-Delete respective depth dimension (depends on angle)
-
-0 -> (x,y,z)
-1 -> (x,y,z)
-2 -> (x,y,z)
-
-Once the dictionary is created, acknowledge the faces:
-
-face 1: node 0, 1, 2
-face 1: (x,y,z), (x1,y1,z1), (x2,y2,z2)
-p = Polygon(((x,y,z), (x1,y1,z1), (x2,y2,z2)), closed=False);
-ax = plot.gca()
-
-...
-'''

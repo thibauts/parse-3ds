@@ -6,9 +6,18 @@ var parsed = parse3DS(buf, { 'objects':true, 'tree':false });
 var parsed = parsed["objects"];
 
 //wipe clean
-fs.writeFileSync("vertices.txt","");
-fs.writeFileSync("faces.txt","");
+//fs.writeFileSync("vertices.txt","");
+//fs.writeFileSync("faces.txt","");
 
+console.log(parsed)
+console.log(typeof(parsed))
+
+JSONer = JSON.stringify(parsed)
+
+fs.writeFileSync("./everything.json",JSONer);
+
+/*
+LEGACY .TXT WRITER, NEEDS POST PROCESSING TO IMPORT INTO PYTHON. JSON PREFERED ABOVE.
 for (var i = 0; i < parsed.length; i++){
     console.log(parsed[i]);
     fs.appendFileSync("vertices.txt",parsed[i].name+"\n");
@@ -20,3 +29,4 @@ for (var i = 0; i < parsed.length; i++){
         fs.appendFileSync("faces.txt","    "+parsed[i].faces[k]+"\n");
     }
 }
+*/
