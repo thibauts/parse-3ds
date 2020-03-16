@@ -23,11 +23,6 @@ Returns the parsed contents of `buf`. `options`, if present, can contain the fol
 
 Note: should you need to explicitly set `encoding`, please consider logging an issue for further investigation.
 
-Drawer usage
------
-
-Once you have created the .JSON from the .3ds file, use ```python draw.py``` to plot it.
-
 Example
 -------
 
